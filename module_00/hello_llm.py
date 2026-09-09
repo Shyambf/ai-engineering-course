@@ -12,13 +12,13 @@ import time
 from pathlib import Path
 
 # ШАГ 1: Раскомментируй три строки ниже (убери # в начале каждой)
-# from dotenv import load_dotenv
-# from gigachat import GigaChat
-# from openai import OpenAI
+from dotenv import load_dotenv
+from gigachat import GigaChat
+from openai import OpenAI
 
 
 # ШАГ 2: Раскомментируй строку ниже — она загружает ключи из .env
-# load_dotenv(Path(__file__).parent.parent / ".env")
+load_dotenv(Path(__file__).parent.parent / ".env")
 
 
 # ШАГ 3: Укажи вопрос, который отправим в оба провайдера
