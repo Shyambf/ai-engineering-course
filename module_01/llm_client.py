@@ -46,7 +46,7 @@ TEMPERATURE = 0.7
 # TODO 3: max_tokens — потолок длины ответа.
 #   Если ответ обрывается на полуслове, в выводе будет finish_reason = length.
 #   Попробуй 50 (ответ обрежется) и 500 (ответ поместится целиком).
-MAX_TOKENS = 50
+MAX_TOKENS = 500
 
 # TODO 4: system prompt — "роль" модели. Задаёт тон и рамки ответа.
 #   Попробуй минимум два варианта, например:
@@ -141,9 +141,15 @@ def ask_llm(question: str) -> tuple:
     start = time.time()
 
     # --- заменить этот блок на try/except (см. пункты 1-3 выше) ---
-    result = call_gigachat(question)
-    provider = "GigaChat"
-    # --- конец блока ---
+    try:
+        result = call_gigachat(question)
+        provider = "GigaChat"
+    
+    except Exception as e:
+        print(f"[!] GigaChat недоступен: {e}")
+        print("Переключаюсь на резервный...")
+        result = call_huggingface(question)    # call_huggingface
+        provider = "HuggingFace"
 
     latency = time.time() - start
     return result, provider, latency
