@@ -79,22 +79,8 @@ REGISTRY_LOOKUP = {_norm(item["id"]): item["id"] for item in REGISTRY}
 
 
 def validate_equipment_id(value) -> str | None:
-    """Сверяет идентификатор оборудования с реестром.
-
-    TODO 4: сейчас функция возвращает значение как есть — это заглушка.
-    Она пропустит в корпус и «км 101», и латинское «KM-101», и полностью
-    выдуманный моделью код — а в М2 мы уже выяснили, чем это кончается.
-
-    Что сделать (всё уже готово выше — как в Занятии 4, модуль М2):
-      1. Нормализовать написание: key = _norm(str(value)).
-      2. Поискать key в REGISTRY_LOOKUP.
-      3. Нашли — вернуть КАНОНИЧНУЮ запись из реестра (значение словаря):
-         «км 101» -> «КМ-101», латиница -> кириллица.
-      4. Не нашли — вернуть None: модель выдумала оборудование,
-         объект будет отбракован.
-    """
-    return str(value).strip()
-
+    key = _norm(str(value))
+    return REGISTRY_LOOKUP.get(key)
 
 BATCH_SIZE = 5        # объектов за один вызов (батчи по 3-5)
 N_INCIDENTS = 12      # записей журнала инцидентов
@@ -361,29 +347,21 @@ def ask_model(prompt: str, max_tokens: int = 2500) -> str:
     return response.choices[0].message.content
 
 
+
+
 def extract_json_array(raw: str):
-    """Достаёт JSON-массив из ответа модели.
-
-    TODO 5: сейчас функция пробует разобрать ответ целиком — это заглушка.
-    Она работает, только пока модель вернула ЧИСТЫЙ JSON. Но модель любит
-    обернуть ответ в ```json ... ``` или добавить «Вот результат:» — и тогда
-    json.loads падает, хотя массив в ответе есть.
-
-    Что сделать (как extract_json_block в М2, только для массива [...]):
-      1. Поискать блок в ограде: re.search(r"```(?:json)?\\s*(\\[.*?\\])\\s*```",
-         raw, re.DOTALL) — если нашёлся, взять .group(1).
-      2. Иначе взять кусок от первой [ до последней ]:
-         re.search(r"\\[.*\\]", raw, re.DOTALL) — .group(0).
-      3. Ничего не нашлось — вернуть None.
-      4. json.loads(блок); если JSONDecodeError — вернуть None
-         (вызывающий код сам перегенерирует батч).
-    """
+    fenced = re.search(r"```(?:json)?\s*(\[.*?\])\s*```", raw, re.DOTALL)
+    block = fenced.group(1) if fenced else None
+    if block is None:
+        plain = re.search(r"\[.*\]", raw, re.DOTALL)
+        block = plain.group(0) if plain else None
+    if block is None:
+        return None
     try:
-        data = json.loads(raw)
-        return data if isinstance(data, list) else None
+        return json.loads(block)
     except json.JSONDecodeError:
         return None
-
+    
 
 def ask_for_json(prompt: str, expected: int, what: str, max_tokens: int = 2500):
     """Вызов с повтором: битый JSON в батче — перегенерируем один раз."""
