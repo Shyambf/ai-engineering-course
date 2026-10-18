@@ -102,13 +102,13 @@ SOURCES = [
     {   # ГОСТ 32601-2022, насосы центробежные — заполни по образцу
         "url": "https://files.stroyinf.ru/Data/784/78426.pdf",
         "file": "ext_gost32601.pdf",
-        "doc_id": " EXT-GOST-32601",
+        "doc_id": "EXT-GOST-32601",
         "type": "нормативный документ",
         "title": "ГОСТ 32601-2022: Насосы центробежные для нефтяной, нефтехимической и газовой промышленности",
         "date": "2022",
     },
     {   # Регламент ТО и ремонта технологических трубопроводов
-        "url": "https://gostbank.metaltorg.ru/data/norms_/jr/12.pd",
+        "url": "https://gostbank.metaltorg.ru/data/norms_/jr/12.pdf",
         "file": "ext_reglament_truboprovody.pdf",
         "doc_id": "EXT-REGL-TRUB",
         "type": "нормативный документ",
