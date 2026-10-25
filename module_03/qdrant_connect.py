@@ -15,13 +15,17 @@
 """
 
 
+import os
 import sys
+import time
 from pathlib import Path
 
 from qdrant_client import QdrantClient
 
-QDRANT_URL = "http://localhost:6333"
-DASHBOARD_URL = QDRANT_URL + "/dashboard"
+QDRANT_HOST = os.getenv("QDRANT_HOST", "localhost")
+QDRANT_PORT = os.getenv("QDRANT_PORT", "6333")
+QDRANT_URL = os.getenv("QDRANT_URL", f"http://{QDRANT_HOST}:{QDRANT_PORT}")
+DASHBOARD_URL = os.getenv("DASHBOARD_URL", f"http://localhost:{QDRANT_PORT}/dashboard")
 
 DOCKER_HINT = f"""
 Qdrant не отвечает на {QDRANT_URL}.
@@ -52,10 +56,18 @@ def make_client(embedded: bool, db_path: Path) -> QdrantClient:
         return QdrantClient(path=str(db_path))
 
     client = QdrantClient(url=QDRANT_URL)
-    try:
-        client.get_collections()
-    except Exception:
+    connected = False
+    for attempt in range(15):
+        try:
+            client.get_collections()
+            connected = True
+            break
+        except Exception:
+            if attempt < 14:
+                time.sleep(1)
+
+    if not connected:
         print(DOCKER_HINT.format(script=Path(sys.argv[0]).name))
         sys.exit(1)
-    print(f"Qdrant в Docker: {QDRANT_URL}  (веб-интерфейс: {DASHBOARD_URL})")
+    print(f"Qdrant: {QDRANT_URL}  (веб-интерфейс: {DASHBOARD_URL})")
     return client

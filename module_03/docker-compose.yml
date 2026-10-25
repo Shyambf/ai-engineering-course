@@ -1,6 +1,3 @@
-# Qdrant для занятия 6. Запуск:  docker compose up -d
-# Веб-интерфейс: http://localhost:6333/dashboard
-# Остановить:    docker compose down   (данные останутся в volume qdrant_storage)
 services:
   qdrant:
     image: qdrant/qdrant:v1.18.3
@@ -9,6 +6,31 @@ services:
       - "6333:6333"
     volumes:
       - qdrant_storage:/qdrant/storage
+    restart: unless-stopped
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: promtech-rag-app
+    depends_on:
+      - qdrant
+    environment:
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - QDRANT_URL=http://qdrant:6333
+      - DASHBOARD_URL=http://localhost:6333/dashboard
+      - PYTHONUNBUFFERED=1
+    env_file:
+      - path: .env
+        required: false
+    volumes:
+      - ./data:/app/data
+      - hf_cache:/root/.cache/huggingface
+    command: ["python", "entrypoint.py"]
 
 volumes:
   qdrant_storage:
+    name: qdrant_storage
+  hf_cache:
+    name: rag_hf_cache

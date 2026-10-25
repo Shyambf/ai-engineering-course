@@ -197,11 +197,12 @@ def switch_alias(client: QdrantClient, collection: str):
     ])
 
 
-def drop_old_collections(client: QdrantClient, keep: int):
+def drop_old_collections(client: QdrantClient, keep: int, current: str = None):
     """Убирает старые сборки индекса, оставляя последние `keep`."""
     ours = sorted(c.name for c in client.get_collections().collections
-                  if c.name.startswith(COLLECTION_PREFIX))
-    for name in ours[:-keep]:
+                  if c.name.startswith(COLLECTION_PREFIX) and c.name != current)
+    cutoff = max(0, len(ours) - (keep - 1)) if keep > 1 else len(ours)
+    for name in ours[:cutoff]:
         client.delete_collection(name)
         print(f"    удалена старая коллекция: {name}")
 
@@ -242,7 +243,7 @@ def build_index(client: QdrantClient, model: SentenceTransformer) -> tuple:
     )
 
     switch_alias(client, collection)
-    drop_old_collections(client, KEEP_COLLECTIONS)
+    drop_old_collections(client, KEEP_COLLECTIONS, current=collection)
 
     manifest = {
         "alias": ALIAS,
